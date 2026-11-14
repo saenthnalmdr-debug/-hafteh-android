@@ -54,6 +54,11 @@ jobs:
           test -f HaftehAndroid/app/build.gradle.kts
           test -f HaftehAndroid/app/src/main/AndroidManifest.xml
 
+      - name: Apply updated planner implementation
+        run: |
+          mkdir -p HaftehAndroid/app/src/main/java/ir/hafteh/app
+          cp overrides/MainActivity.kt HaftehAndroid/app/src/main/java/ir/hafteh/app/MainActivity.kt
+
       - name: Package extracted source for review
         run: |
           echo "=== SOURCE FILES ==="
