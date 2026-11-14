@@ -45,6 +45,23 @@ jobs:
       - name: Build debug APK
         run: gradle -p HaftehAndroid --no-daemon assembleDebug
 
+      - name: Check APK signature and details
+        run: |
+          APK="HaftehAndroid/app/build/outputs/apk/debug/app-debug.apk"
+          BUILD_TOOLS="$ANDROID_HOME/build-tools/36.0.0"
+
+          echo "===== APK FILE ====="
+          ls -lh "$APK"
+
+          echo "===== APK SIGNATURE ====="
+          "$BUILD_TOOLS/apksigner" verify --verbose --print-certs "$APK"
+
+          echo "===== APK PACKAGE DETAILS ====="
+          "$BUILD_TOOLS/aapt" dump badging "$APK" | grep -E "package:|sdkVersion:|targetSdkVersion:|native-code:"
+
+          echo "===== APK ALIGNMENT ====="
+          "$BUILD_TOOLS/zipalign" -c -v 4 "$APK"
+
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
