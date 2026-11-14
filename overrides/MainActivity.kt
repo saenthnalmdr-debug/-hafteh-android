@@ -15,6 +15,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import org.json.JSONArray
@@ -58,10 +59,10 @@ private data class Gesture(val day:Int,val minute:Int,val toDay:Int,val toMinute
 @Composable private fun Stepper(v:Int,change:(Int)->Unit){Row{FilledTonalButton(onClick={change((v-30).coerceAtLeast(420))}){Text("−۳۰")};Text("%02d:%02d".format(v/60,v%60),Modifier.padding(horizontal=14.dp));FilledTonalButton(onClick={change((v+30).coerceAtMost(1410))}){Text("+۳۰")}}}
 @Composable private fun WeeklyBoard(dates:List<Calendar>,events:List<List<Event>>,gesture:Gesture?,onTap:(Int,Int,Event?)->Unit,onStart:(Int,Int,Event?)->Unit,onMove:(Int,Int)->Unit,onFinish:()->Unit,modifier:Modifier){
  val line=MaterialTheme.colorScheme.outlineVariant;val scroll=rememberScrollState()
- BoxWithConstraints(modifier.fillMaxWidth()){val label=38.dp
+ BoxWithConstraints(modifier.fillMaxWidth()){val label=38.dp;val boardWidth=maxWidth-label
  Row(Modifier.fillMaxSize().horizontalScroll(scroll)){
  Canvas(Modifier.width(label).fillMaxHeight()){val rh=size.height/16f;for(i in 0..15)drawContext.canvas.nativeCanvas.drawText("${(i+7).toString().padStart(2,'0')}:00",0f,i*rh+rh*.6f,android.graphics.Paint().apply{color=android.graphics.Color.GRAY;textSize=20f})}
- Canvas(Modifier.width(maxWidth-label).fillMaxHeight().pointerInput(events,dates){detectTapGestures{p->val cw=size.width/7;val rh=size.height/16;val d=(p.x/cw).toInt().coerceIn(0,6);val m=(420+(p.y/rh).toInt()*60).coerceIn(420,1379);onTap(d,m,events[d].firstOrNull{m>=it.start&&m<it.end})}}.pointerInput(events,dates){detectDragGestures(onDragStart={p->val cw=size.width/7;val rh=size.height/16;val d=(p.x/cw).toInt().coerceIn(0,6);val m=(420+(p.y/rh).toInt()*60).coerceIn(420,1379);onStart(d,m,events[d].firstOrNull{m>=it.start&&m<it.end})},onDragEnd=onFinish){c,_->val cw=size.width/7;val rh=size.height/16;onMove((c.position.x/cw).toInt().coerceIn(0,6),(420+(c.position.y/rh).toInt()*60).coerceIn(420,1379));c.consume()}}){
+ Canvas(Modifier.width(boardWidth).fillMaxHeight().pointerInput(events,dates){detectTapGestures{p->val cw=size.width/7;val rh=size.height/16;val d=(p.x/cw).toInt().coerceIn(0,6);val m=(420+(p.y/rh).toInt()*60).coerceIn(420,1379);onTap(d,m,events[d].firstOrNull{m>=it.start&&m<it.end})}}.pointerInput(events,dates){detectDragGestures(onDragStart={p->val cw=size.width/7;val rh=size.height/16;val d=(p.x/cw).toInt().coerceIn(0,6);val m=(420+(p.y/rh).toInt()*60).coerceIn(420,1379);onStart(d,m,events[d].firstOrNull{m>=it.start&&m<it.end})},onDragEnd=onFinish){c,_->val cw=size.width/7;val rh=size.height/16;onMove((c.position.x/cw).toInt().coerceIn(0,6),(420+(c.position.y/rh).toInt()*60).coerceIn(420,1379));c.consume()}}){
  val cw=size.width/7;val rh=size.height/16
  for(d in 0..7)drawLine(line,Offset(d*cw,0f),Offset(d*cw,size.height),1f);for(h in 0..16)drawLine(line,Offset(0f,h*rh),Offset(size.width,h*rh),if(h%2==0)1.2f else .5f)
  for(d in 0..6){drawContext.canvas.nativeCanvas.drawText("${days[d]} ${SimpleDateFormat("dd",Locale("fa","IR")).format(dates[d].time)}",d*cw+3f,22f,android.graphics.Paint().apply{color=android.graphics.Color.DKGRAY;textSize=18f});events[d].forEach{e->val y=(e.start-420)/60f*rh;val h=((e.end-e.start)/60f*rh).coerceAtLeast(18f);drawRoundRect(palette[(e.rank-1).coerceIn(0,4)],Offset(d*cw+2,y.coerceAtLeast(26f)),Size(cw-4,h),androidx.compose.ui.geometry.CornerRadius(7f));drawContext.canvas.nativeCanvas.drawText(e.title.take(11),d*cw+5,y.coerceAtLeast(26f)+20f,android.graphics.Paint().apply{color=android.graphics.Color.WHITE;textSize=18f})}}
