@@ -9,58 +9,68 @@ permissions:
 
 jobs:
   build:
+    name: Build Android APK
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout source
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
+          cache: gradle
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: '9.4.1'
+          gradle-version: '8.9'
 
       - name: Set up Android SDK
-        uses: android-actions/setup-android@v4
-        with:
-          packages: 'platform-tools'
+        uses: android-actions/setup-android@v3
 
-      - name: Install Android SDK platform
+      - name: Install Android SDK
         run: |
-          sdkmanager "platforms;android-36" "build-tools;36.0.0"
+          sdkmanager "platform-tools" \
+            "platforms;android-35" \
+            "build-tools;35.0.0"
 
-      - name: Extract corrected Android project
-        run: unzip -q HaftehAndroid-source-fixed.zip
-
-      - name: Update Android Gradle Plugin
+      - name: Check source ZIP
         run: |
-          find HaftehAndroid -type f \( -name "*.gradle" -o -name "*.gradle.kts" -o -name "libs.versions.toml" \) -exec sed -i 's/9\.0\.0/9.1.0/g' {} +
+          test -f HaftehAndroid-source-rebuilt.zip
+          echo "Source ZIP found."
 
-      - name: Build debug APK
-        run: gradle -p HaftehAndroid --no-daemon assembleDebug
+      - name: Extract Android source
+        run: |
+          mkdir -p HaftehAndroid
+          unzip -oq HaftehAndroid-source-rebuilt.zip -d HaftehAndroid
 
-      - name: Check APK signature and details
+          test -f HaftehAndroid/settings.gradle.kts
+          test -f HaftehAndroid/build.gradle.kts
+          test -f HaftehAndroid/app/build.gradle.kts
+          test -f HaftehAndroid/app/src/main/AndroidManifest.xml
+
+          echo "Source files verified."
+
+      - name: Build Debug APK
+        run: |
+          gradle -p HaftehAndroid \
+            --no-daemon \
+            assembleDebug
+
+      - name: Verify APK
         run: |
           APK="HaftehAndroid/app/build/outputs/apk/debug/app-debug.apk"
-          BUILD_TOOLS="$ANDROID_HOME/build-tools/36.0.0"
 
-          echo "===== APK FILE ====="
-          ls -lh "$APK"
+          test -f "$APK"
 
-          echo "===== APK SIGNATURE ====="
-          "$BUILD_TOOLS/apksigner" verify --verbose --print-certs "$APK"
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" \
+            verify --verbose --print-certs "$APK"
 
-          echo "===== APK PACKAGE DETAILS ====="
-          "$BUILD_TOOLS/aapt" dump badging "$APK" | grep -E "package:|sdkVersion:|targetSdkVersion:|native-code:"
-
-          echo "===== APK ALIGNMENT ====="
-          "$BUILD_TOOLS/zipalign" -c -v 4 "$APK"
+          "$ANDROID_HOME/build-tools/35.0.0/aapt" \
+            dump badging "$APK"
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
