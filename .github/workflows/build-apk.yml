@@ -29,17 +29,18 @@ jobs:
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools'
 
-      - name: Install Android SDK
+      - name: Install Android SDK packages
         run: |
-          sdkmanager "platform-tools" \
+          sdkmanager --install \
             "platforms;android-35" \
             "build-tools;35.0.0"
 
       - name: Check source ZIP
         run: |
           test -f HaftehAndroid-source-rebuilt.zip
-          echo "Source ZIP found."
 
       - name: Extract Android source
         run: |
@@ -50,8 +51,6 @@ jobs:
           test -f HaftehAndroid/build.gradle.kts
           test -f HaftehAndroid/app/build.gradle.kts
           test -f HaftehAndroid/app/src/main/AndroidManifest.xml
-
-          echo "Source files verified."
 
       - name: Build Debug APK
         run: |
