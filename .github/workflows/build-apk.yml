@@ -35,8 +35,8 @@ jobs:
         run: |
           sdkmanager "platforms;android-36" "build-tools;36.0.0"
 
-      - name: Extract Android project
-        run: unzip -q HaftehAndroid-source.zip
+      - name: Extract corrected Android project
+        run: unzip -q HaftehAndroid-source-fixed.zip
 
       - name: Update Android Gradle Plugin
         run: |
