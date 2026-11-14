@@ -54,12 +54,19 @@ jobs:
           test -f HaftehAndroid/app/build.gradle.kts
           test -f HaftehAndroid/app/src/main/AndroidManifest.xml
 
-      - name: Inspect application source
+      - name: Package extracted source for review
         run: |
-          echo '=== SOURCE FILES ==='
-          find HaftehAndroid/app/src -type f -maxdepth 10 -print
-          echo '=== KOTLIN SOURCES ==='
-          find HaftehAndroid/app/src -type f -name '*.kt' -print -exec sed -n '1,260p' {} \\\\\;
+          echo "=== SOURCE FILES ==="
+          find HaftehAndroid/app/src -type f | sort
+          tar -czf hafteh-source-review.tar.gz HaftehAndroid
+
+      - name: Upload extracted source
+        uses: actions/upload-artifact@v4
+        with:
+          name: Hafteh-extracted-source
+          path: hafteh-source-review.tar.gz
+          if-no-files-found: error
+          retention-days: 7
 
       - name: Build Debug APK
         run: |
