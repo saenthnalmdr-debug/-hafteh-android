@@ -37,7 +37,8 @@ jobs:
 
       - name: Extract Android project
         run: unzip -q HaftehAndroid-source.zip
-             - name: Update Android Gradle Plugin
+
+      - name: Update Android Gradle Plugin
         run: |
           find HaftehAndroid -type f \( -name "*.gradle" -o -name "*.gradle.kts" -o -name "libs.versions.toml" \) -exec sed -i 's/9\.0\.0/9.1.0/g' {} +
 
